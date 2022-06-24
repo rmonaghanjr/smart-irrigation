@@ -49,6 +49,6 @@ func (router *Router) GetWateringData(w http.ResponseWriter, req *http.Request) 
 
 func (router *Router) TogglePumpPower(w http.ResponseWriter, req *http.Request) {
 	api.TogglePower(router.Pin)
-	fmt.Println()
+	fmt.Println("recieved")
 	w.Write([]byte("toggled power!"))
 }

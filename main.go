@@ -15,12 +15,17 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
+	fmt.Println("opened database")
 
 	err = rpio.Open()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+	fmt.Println("opened gpio connection")
+
+	defer rpio.Close()
+
 	pin := rpio.Pin(18)
 
 	server.Start(db, &pin, false)

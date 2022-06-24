@@ -2,6 +2,7 @@ package server
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"smart-irrigation/m/v2/api"
 
@@ -33,6 +34,7 @@ func Start(db *sql.DB, pin *rpio.Pin, production bool) {
 	}
 
 	http.ListenAndServe(addr, nil)
+	fmt.Println("started server...")
 }
 
 /*
@@ -47,4 +49,6 @@ func (router *Router) GetWateringData(w http.ResponseWriter, req *http.Request) 
 
 func (router *Router) TogglePumpPower(w http.ResponseWriter, req *http.Request) {
 	api.TogglePower(router.Pin)
+	fmt.Println()
+	w.Write([]byte("toggled power!"))
 }

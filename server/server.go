@@ -24,6 +24,7 @@ func Start(db *sql.DB, pin *rpio.Pin, production bool) {
 	router := NewRouter(db, pin)
 
 	http.HandleFunc("/api/data", router.GetWateringData)
+	http.HandleFunc("/toggle", router.TogglePumpPower)
 
 	var addr string = ":8080"
 

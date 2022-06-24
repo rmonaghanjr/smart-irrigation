@@ -23,6 +23,6 @@ func main() {
 	}
 	pin := rpio.Pin(18)
 
-	server.Start(db, pin, false)
+	server.Start(db, &pin, false)
 
 }

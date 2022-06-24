@@ -37,6 +37,7 @@ func main() {
 	var timeStart int64
 
 	for value := range pinChannel {
+		fmt.Println(value[0:2])
 		if value[0:2] == "out" {
 			fmt.Println(value[4:])
 		} else if value[0:2] == "pin" {

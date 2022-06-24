@@ -12,6 +12,7 @@ type Router struct {
 	DB      *sql.DB
 	Pin     *rpio.Pin
 	Channel chan string
+	IsOn    bool
 }
 
 func NewRouter(db *sql.DB, pin *rpio.Pin, channel chan string) *Router {
@@ -19,6 +20,7 @@ func NewRouter(db *sql.DB, pin *rpio.Pin, channel chan string) *Router {
 		DB:      db,
 		Pin:     pin,
 		Channel: channel,
+		IsOn:    false,
 	}
 }
 
@@ -50,15 +52,12 @@ func (router *Router) GetWateringData(w http.ResponseWriter, req *http.Request) 
 
 func (router *Router) TogglePumpPower(w http.ResponseWriter, req *http.Request) {
 	api.TogglePower(router.Pin)
+	router.IsOn = !router.IsOn
 
-	router.Pin.Input()
-	value := router.Pin.Read()
-	router.Pin.Output()
-
-	if value == rpio.High {
+	if router.IsOn {
 		router.Channel <- "pin:on"
 		w.Write([]byte("pin:on"))
-	} else if value == rpio.Low {
+	} else {
 		router.Channel <- "pin:off"
 		w.Write([]byte("pin:off"))
 	}

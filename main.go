@@ -31,15 +31,15 @@ func main() {
 	pin := rpio.Pin(18)
 	pin.Output()
 
-	go server.Start(db, &pin, false)
+	go server.Start(db, &pin, pinChannel, false)
 
 	pinOn := false
 	var timeStart int64
 
 	for value := range pinChannel {
-		if value[0:3] == "out" {
+		if value[0:2] == "out" {
 			fmt.Println(value[4:])
-		} else if value[0:3] == "pin" {
+		} else if value[0:2] == "pin" {
 			// time running detection
 			if value[4:] == "on" {
 				pinOn = true

@@ -2,7 +2,6 @@ package server
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 	"smart-irrigation/m/v2/api"
 
@@ -10,19 +9,21 @@ import (
 )
 
 type Router struct {
-	DB  *sql.DB
-	Pin *rpio.Pin
+	DB      *sql.DB
+	Pin     *rpio.Pin
+	Channel chan string
 }
 
-func NewRouter(db *sql.DB, pin *rpio.Pin) *Router {
+func NewRouter(db *sql.DB, pin *rpio.Pin, channel chan string) *Router {
 	return &Router{
-		DB:  db,
-		Pin: pin,
+		DB:      db,
+		Pin:     pin,
+		Channel: channel,
 	}
 }
 
-func Start(db *sql.DB, pin *rpio.Pin, production bool) {
-	router := NewRouter(db, pin)
+func Start(db *sql.DB, pin *rpio.Pin, channel chan string, production bool) {
+	router := NewRouter(db, pin, channel)
 
 	http.HandleFunc("/api/data", router.GetWateringData)
 	http.HandleFunc("/toggle", router.TogglePumpPower)
@@ -33,7 +34,7 @@ func Start(db *sql.DB, pin *rpio.Pin, production bool) {
 		addr = ":80"
 	}
 
-	fmt.Println("opened http server")
+	router.Channel <- "out:opened http server"
 	http.ListenAndServe(addr, nil)
 }
 
@@ -49,5 +50,16 @@ func (router *Router) GetWateringData(w http.ResponseWriter, req *http.Request) 
 
 func (router *Router) TogglePumpPower(w http.ResponseWriter, req *http.Request) {
 	api.TogglePower(router.Pin)
-	w.Write([]byte("toggled power!"))
+
+	router.Pin.Input()
+	value := router.Pin.Read()
+	router.Pin.Output()
+
+	if value == rpio.High {
+		router.Channel <- "pin:on"
+		w.Write([]byte("pin:on"))
+	} else if value == rpio.Low {
+		router.Channel <- "pin:off"
+		w.Write([]byte("pin:off"))
+	}
 }

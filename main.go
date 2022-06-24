@@ -24,10 +24,10 @@ func main() {
 	}
 	fmt.Println("opened gpio connection")
 
-	defer rpio.Close()
-
 	pin := rpio.Pin(18)
 
 	go server.Start(db, &pin, false)
+
+	select {}
 
 }

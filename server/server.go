@@ -33,8 +33,8 @@ func Start(db *sql.DB, pin *rpio.Pin, production bool) {
 		addr = ":80"
 	}
 
+	fmt.Println("opened http server")
 	http.ListenAndServe(addr, nil)
-	fmt.Println("started server...")
 }
 
 /*
@@ -49,6 +49,5 @@ func (router *Router) GetWateringData(w http.ResponseWriter, req *http.Request) 
 
 func (router *Router) TogglePumpPower(w http.ResponseWriter, req *http.Request) {
 	api.TogglePower(router.Pin)
-	fmt.Println("recieved")
 	w.Write([]byte("toggled power!"))
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"smart-irrigation/m/v2/server"
-	"strconv"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -48,7 +47,7 @@ func main() {
 				pinOn = false
 				diff := (time.Now().UnixMilli() - timeStart)
 
-				fmt.Println("ran for " + strconv.Itoa(int(diff)))
+				fmt.Println("ran for " + fmt.Sprintf("%.2f", float64(diff)/1000.0) + " seconds, " + fmt.Sprintf("%.2f", 833.333333333*float64(diff)/1000.0) + " mL of water dispensed.")
 			}
 		}
 	}

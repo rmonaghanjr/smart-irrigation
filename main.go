@@ -46,7 +46,7 @@ func main() {
 				timeStart = time.Now().UnixMilli()
 			} else if value[4:] == "off" && pinOn {
 				pinOn = false
-				diff := (time.Now().UnixMilli() - timeStart) * int64(time.Second)
+				diff := (time.Now().UnixMilli() - timeStart)
 
 				fmt.Println("ran for " + strconv.Itoa(int(diff)))
 			}

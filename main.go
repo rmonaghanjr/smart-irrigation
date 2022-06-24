@@ -25,6 +25,7 @@ func main() {
 	fmt.Println("opened gpio connection")
 
 	pin := rpio.Pin(12)
+	pin.Output()
 
 	go server.Start(db, &pin, false)
 

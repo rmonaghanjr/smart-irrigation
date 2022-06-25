@@ -12,23 +12,28 @@ import (
 )
 
 func main() {
+	const ML_PER_S float64 = 36.6666666667
+
 	db, err := sql.Open("sqlite3", "./database.db")
 	if err != nil {
 		fmt.Println(err)
 	}
 	fmt.Println("opened database")
 
-	err = rpio.Open()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	devMode := false
+	_, err = os.Stat("/dev/mem")
+	if os.IsNotExist(err) {
+		devMode = true
 	}
-	fmt.Println("opened gpio connection")
 
 	pinChannel := make(chan string)
 
-	pin := rpio.Pin(18)
-	pin.Output()
+	var pin rpio.Pin
+
+	if !devMode {
+		pin := rpio.Pin(18)
+		pin.Output()
+	}
 
 	go server.Start(db, &pin, pinChannel, false)
 
@@ -39,7 +44,6 @@ func main() {
 		if value[0:3] == "out" {
 			fmt.Println(value[4:])
 		} else if value[0:3] == "pin" {
-			// time running detection
 			if value[4:] == "on" {
 				pinOn = true
 				timeStart = time.Now().UnixMilli()
@@ -47,7 +51,13 @@ func main() {
 				pinOn = false
 				diff := (time.Now().UnixMilli() - timeStart)
 
-				fmt.Println("ran for " + fmt.Sprintf("%.2f", float64(diff)/1000.0) + " seconds, " + fmt.Sprintf("%.2f", 833.333333333*float64(diff)/1000.0) + " mL of water dispensed.")
+				statement, err := db.Prepare("insert into water_log (date, amount, time) values (?, ?, ?)")
+				if err != nil {
+					fmt.Println(err)
+				}
+
+				statement.Exec(time.Now().UnixMilli(), ML_PER_S*float64(diff)/1000.0, float64(diff)/1000.0)
+				statement.Close()
 			}
 		}
 	}

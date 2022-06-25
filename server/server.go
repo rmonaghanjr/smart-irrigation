@@ -2,6 +2,8 @@ package server
 
 import (
 	"database/sql"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"smart-irrigation/m/v2/api"
 
@@ -13,6 +15,17 @@ type Router struct {
 	Pin     *rpio.Pin
 	Channel chan string
 	IsOn    bool
+}
+
+type WateringData struct {
+	Logs []WaterLogRow `json:"logs"`
+}
+
+type WaterLogRow struct {
+	Id     int     `json:"id"`
+	Date   int     `json:"date"`
+	Amount float64 `json:"amount"`
+	Time   float64 `json:"time"`
 }
 
 func NewRouter(db *sql.DB, pin *rpio.Pin, channel chan string) *Router {
@@ -47,7 +60,38 @@ Reports the amount of water today as well as all the times that it has dispensed
 */
 
 func (router *Router) GetWateringData(w http.ResponseWriter, req *http.Request) {
+	statement, err := router.DB.Prepare("select * from water_log")
+	if err != nil {
+		fmt.Println(err)
+	}
 
+	defer statement.Close()
+
+	rows, err := statement.Query()
+	if err != nil {
+		fmt.Print(err)
+	}
+
+	res := WateringData{
+		Logs: make([]WaterLogRow, 0),
+	}
+
+	for rows.Next() {
+		log := WaterLogRow{}
+		err := rows.Scan(&log.Id, &log.Date, &log.Amount, &log.Time)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		res.Logs = append(res.Logs, log)
+	}
+
+	jsonResult, err := json.Marshal(res)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	w.Write(jsonResult)
 }
 
 func (router *Router) TogglePumpPower(w http.ResponseWriter, req *http.Request) {

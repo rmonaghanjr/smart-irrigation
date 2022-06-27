@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"smart-irrigation/m/v2/api"
 	"strconv"
 
 	"github.com/stianeikeland/go-rpio/v4"
@@ -106,7 +105,6 @@ func (router *Router) GetWateringData(w http.ResponseWriter, req *http.Request) 
 }
 
 func (router *Router) TogglePumpPower(w http.ResponseWriter, req *http.Request) {
-	api.TogglePower(router.Pin)
 	router.IsOn = !router.IsOn
 
 	if router.IsOn {

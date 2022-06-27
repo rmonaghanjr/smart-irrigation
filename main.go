@@ -57,9 +57,11 @@ func main() {
 		} else if value[0:3] == "pin" {
 			if value[4:] == "on" {
 				pinOn = true
+				api.TriggerOn(&pin)
 				timeStart = time.Now().UnixMilli()
 			} else if value[4:] == "off" && pinOn {
 				pinOn = false
+				api.TriggerOff(&pin)
 				diff := (time.Now().UnixMilli() - timeStart)
 
 				statement, err := db.Prepare("insert into water_log (date, amount, time) values (?, ?, ?)")

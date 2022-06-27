@@ -25,11 +25,11 @@ func TimingScheduler(db *sql.DB, output chan string) {
 			var smartWater int
 
 			for rows.Next() {
-				rows.Scan(&interval, &smartWater)
+				rows.Scan(interval, smartWater)
+				fmt.Println("interva;, smart water:")
+				fmt.Println(interval)
+				fmt.Println(smartWater)
 			}
-			fmt.Println("interva;, smart water:")
-			fmt.Println(interval)
-			fmt.Println(smartWater)
 
 			output <- "pin:on"
 			time.Sleep(time.Duration(interval) * time.Minute)

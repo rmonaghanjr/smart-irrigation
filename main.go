@@ -29,6 +29,9 @@ func main() {
 		devMode = true
 	}
 
+	fmt.Print("DEV_MODE=")
+	fmt.Println(devMode)
+
 	pinChannel := make(chan string)
 
 	var pin rpio.Pin

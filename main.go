@@ -27,6 +27,8 @@ func main() {
 	_, err = os.Stat("/dev/mem")
 	if os.IsNotExist(err) {
 		devMode = true
+	} else {
+		rpio.Open()
 	}
 
 	fmt.Print("DEV_MODE=")

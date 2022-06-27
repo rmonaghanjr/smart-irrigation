@@ -8,7 +8,7 @@ import (
 
 func TimingScheduler(db *sql.DB, output chan string) {
 
-	ticker := time.NewTicker(time.Hour)
+	ticker := time.NewTicker(time.Minute)
 	done := make(chan int)
 
 	for {
@@ -27,6 +27,9 @@ func TimingScheduler(db *sql.DB, output chan string) {
 			for rows.Next() {
 				rows.Scan(&interval, &smartWater)
 			}
+			fmt.Println("interva;, smart water:")
+			fmt.Println(interval)
+			fmt.Println(smartWater)
 
 			output <- "pin:on"
 			time.Sleep(time.Duration(interval) * time.Minute)

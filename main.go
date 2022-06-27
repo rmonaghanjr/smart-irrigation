@@ -39,7 +39,7 @@ func main() {
 	var pin rpio.Pin
 
 	if !devMode {
-		pin := rpio.Pin(18)
+		pin = rpio.Pin(18)
 		pin.Output()
 	}
 

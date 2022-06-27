@@ -26,6 +26,8 @@ func TimingScheduler(db *sql.DB, output chan string) {
 
 			for rows.Next() {
 				rows.Scan(&id, &interval, &smartWater)
+				fmt.Println(interval)
+				fmt.Println(smartWater)
 			}
 
 			output <- "pin:on"

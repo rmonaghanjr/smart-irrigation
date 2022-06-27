@@ -4,11 +4,20 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"smart-irrigation/m/v2/api"
+	"strconv"
 
 	"github.com/stianeikeland/go-rpio/v4"
 )
+
+type Config struct {
+	StationName string `json:"station_name"`
+	Version     string `json:"version"`
+	Configured  bool   `json:"configured"`
+}
 
 type Router struct {
 	DB      *sql.DB
@@ -40,8 +49,10 @@ func NewRouter(db *sql.DB, pin *rpio.Pin, channel chan string) *Router {
 func Start(db *sql.DB, pin *rpio.Pin, channel chan string, production bool) {
 	router := NewRouter(db, pin, channel)
 
-	http.HandleFunc("/api/data", router.GetWateringData)
+	http.HandleFunc("/data", router.GetWateringData)
 	http.HandleFunc("/toggle", router.TogglePumpPower)
+	http.HandleFunc("/stats", router.StationStatistics)
+	http.HandleFunc("/configure", router.ConfigureServer)
 
 	var addr string = ":8080"
 
@@ -105,4 +116,81 @@ func (router *Router) TogglePumpPower(w http.ResponseWriter, req *http.Request) 
 		router.Channel <- "pin:off"
 		w.Write([]byte("pin:off"))
 	}
+}
+
+func (router *Router) StationStatistics(w http.ResponseWriter, req *http.Request) {
+	jsonFile, err := os.Open("./config.json")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	defer jsonFile.Close()
+
+	value, err := ioutil.ReadAll(jsonFile)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	w.Write(value)
+}
+
+func (router *Router) ConfigureServer(w http.ResponseWriter, req *http.Request) {
+	config := Config{}
+
+	jsonFile, err := os.Open("./config.json")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	defer jsonFile.Close()
+
+	value, err := ioutil.ReadAll(jsonFile)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	json.Unmarshal(value, &config)
+
+	interval, iErr := strconv.Atoi(req.URL.Query().Get("interval"))
+	if iErr != nil {
+		fmt.Println(iErr)
+	}
+	smartWater, sErr := strconv.Atoi(req.URL.Query().Get("smart_water"))
+	if sErr != nil {
+		fmt.Println(sErr)
+	}
+
+	if !config.Configured {
+		statement, err := router.DB.Prepare("insert into timing (interval, smart_water) values (?, ?)")
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		defer statement.Close()
+
+		statement.Exec(interval, smartWater)
+	} else {
+		statement, err := router.DB.Prepare("update timing set interval=?, smart_water=? where id=1")
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		defer statement.Close()
+
+		statement.Exec(interval, smartWater)
+	}
+
+	config.Configured = true
+
+	raw, err := json.Marshal(config)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	ioutil.WriteFile("./config.json", raw, 0777)
+
+	router.Channel <- "START"
+
+	w.Write([]byte("true"))
+
 }

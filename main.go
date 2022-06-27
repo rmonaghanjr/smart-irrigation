@@ -4,12 +4,15 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"smart-irrigation/m/v2/api"
 	"smart-irrigation/m/v2/server"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stianeikeland/go-rpio/v4"
 )
+
+var hasStarted bool = false
 
 func main() {
 	const ML_PER_S float64 = 36.6666666667
@@ -41,7 +44,10 @@ func main() {
 	var timeStart int64
 
 	for value := range pinChannel {
-		if value[0:3] == "out" {
+		if value == "START" && !hasStarted {
+			go api.TimingScheduler(db, pinChannel)
+			hasStarted = true
+		} else if value[0:3] == "out" {
 			fmt.Println(value[4:])
 		} else if value[0:3] == "pin" {
 			if value[4:] == "on" {
